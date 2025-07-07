@@ -74,3 +74,6 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT S
 set_property(TARGET Server PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
 include_directories(${CMAKE_SOURCE_DIR}/lib/cpp-httplib)
+
+add_subdirectory(fixcolour)
+add_subdirectory(tis620)

@@ -9,6 +9,7 @@
 #include <Impl/events_impl.hpp>
 #include <Server/Components/Dialogs/dialogs.hpp>
 #include <netcode.hpp>
+#include <tis620.hpp>
 
 using namespace Impl;
 
@@ -77,11 +78,26 @@ public:
 			}
 		}
 
+		char tis620_buffer[512];     // สำหรับ title
+		char tis620_buffer2[4096];   // สำหรับ body (รายการยาว)
+		char tis620_buffer3[128];    // สำหรับปุ่ม 1
+		char tis620_buffer4[128];    // สำหรับปุ่ม 2
+
+		const char* fix_title = title.data();
+		const char* fix_body = body.data();
+		const char* fix_button1 = button1.data();
+		const char* fix_button2 = button2.data();
+
+		tis620::utf8_to_tis620(fix_title, tis620_buffer, sizeof(tis620_buffer));
+		tis620::utf8_to_tis620(fix_body, tis620_buffer2, sizeof(tis620_buffer2));
+		tis620::utf8_to_tis620(fix_button1, tis620_buffer3, sizeof(tis620_buffer3));
+		tis620::utf8_to_tis620(fix_button2, tis620_buffer4, sizeof(tis620_buffer4));
+
 		style_ = style;
-		title_ = String(title);
-		body_ = String(body);
-		button1_ = String(button1);
-		button2_ = String(button2);
+		title_ = String(tis620_buffer);
+		body_ = String(tis620_buffer2);
+		button1_ = String(tis620_buffer3);
+		button2_ = String(tis620_buffer4);
 
 		NetCode::RPC::ShowDialog showDialog;
 		showDialog.ID = id;
@@ -89,10 +105,10 @@ public:
 		// We don't have to truncate title to be less than 64 client sided size limit.
 		// Client won't crash or show any undefined behavior, it simply doesn't render.
 		// 64 char limit is without counting embedded colors, let client handle then.
-		showDialog.Title = title_;
-		showDialog.Body = body;
-		showDialog.FirstButton = button1;
-		showDialog.SecondButton = button2;
+		showDialog.Title = tis620_buffer;
+		showDialog.Body = tis620_buffer2;
+		showDialog.FirstButton = tis620_buffer3;
+		showDialog.SecondButton = tis620_buffer4;
 		PacketHelper::send(showDialog, player);
 
 		// set player's active dialog id to keep track of its validity later on response
