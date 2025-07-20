@@ -1448,20 +1448,38 @@ removeWeapon_has_weapon:
 
 		int result = tis620::utf8_to_tis620(utf8_message, tis620_buffer, sizeof(tis620_buffer));
 
-		if (result >= 0)
+		if (tis620::is_valid_utf8(text.data()))
 		{
-			chatBubbleExpiration_ = Time::now() + expire;
-			chatBubble_.text = StringView(tis620_buffer, result);
-			chatBubble_.drawDist = drawDist;
-			chatBubble_.colour = colour;
+			if (result >= 0)
+			{
+				chatBubbleExpiration_ = Time::now() + expire;
+				chatBubble_.text = StringView(tis620_buffer, result);
+				chatBubble_.drawDist = drawDist;
+				chatBubble_.colour = colour;
 
-			NetCode::RPC::SetPlayerChatBubble RPC;
-			RPC.PlayerID = poolID;
-			RPC.Col = colour;
-			RPC.DrawDistance = drawDist;
-			RPC.ExpireTime = expire.count();
-			RPC.Text = StringView(tis620_buffer, result);
-			PacketHelper::broadcastToStreamed(RPC, *this, true /* skipFrom */);
+				NetCode::RPC::SetPlayerChatBubble RPC;
+				RPC.PlayerID = poolID;
+				RPC.Col = colour;
+				RPC.DrawDistance = drawDist;
+				RPC.ExpireTime = expire.count();
+				RPC.Text = StringView(tis620_buffer, result);
+				PacketHelper::broadcastToStreamed(RPC, *this, true /* skipFrom */);
+			}
+			else
+			{
+				chatBubbleExpiration_ = Time::now() + expire;
+				chatBubble_.text = text;
+				chatBubble_.drawDist = drawDist;
+				chatBubble_.colour = colour;
+
+				NetCode::RPC::SetPlayerChatBubble RPC;
+				RPC.PlayerID = poolID;
+				RPC.Col = colour;
+				RPC.DrawDistance = drawDist;
+				RPC.ExpireTime = expire.count();
+				RPC.Text = text;
+				PacketHelper::broadcastToStreamed(RPC, *this, true /* skipFrom */);
+			}
 		}
 		else
 		{
@@ -1487,12 +1505,22 @@ removeWeapon_has_weapon:
 
 		int result = tis620::utf8_to_tis620(utf8_message, tis620_buffer, sizeof(tis620_buffer));
 
-		if (result >= 0)
+		if (tis620::is_valid_utf8(message.data()))
 		{
-			NetCode::RPC::SendClientMessage sendClientMessage;
-			sendClientMessage.Col = colour;
-			sendClientMessage.Message = StringView(tis620_buffer, result);
-			PacketHelper::send(sendClientMessage, *this);
+			if (result >= 0)
+			{
+				NetCode::RPC::SendClientMessage sendClientMessage;
+				sendClientMessage.Col = colour;
+				sendClientMessage.Message = StringView(tis620_buffer, result);
+				PacketHelper::send(sendClientMessage, *this);
+			}
+			else
+			{
+				NetCode::RPC::SendClientMessage sendClientMessage;
+				sendClientMessage.Col = colour;
+				sendClientMessage.Message = message;
+				PacketHelper::send(sendClientMessage, *this);
+			}
 		}
 		else
 		{
@@ -1510,12 +1538,22 @@ removeWeapon_has_weapon:
 
 		int result = tis620::utf8_to_tis620(utf8_message, tis620_buffer, sizeof(tis620_buffer));
 		
-		if (result >= 0)
+		if (tis620::is_valid_utf8(message.data()))
 		{
-			NetCode::RPC::PlayerChatMessage sendChatMessage;
-			sendChatMessage.PlayerID = static_cast<Player&>(sender).poolID;
-			sendChatMessage.message = StringView(tis620_buffer, result);
-			PacketHelper::send(sendChatMessage, *this);
+			if (result >= 0)
+			{
+				NetCode::RPC::PlayerChatMessage sendChatMessage;
+				sendChatMessage.PlayerID = static_cast<Player&>(sender).poolID;
+				sendChatMessage.message = StringView(tis620_buffer, result);
+				PacketHelper::send(sendChatMessage, *this);
+			}
+			else
+			{
+				NetCode::RPC::PlayerChatMessage sendChatMessage;
+				sendChatMessage.PlayerID = static_cast<Player&>(sender).poolID;
+				sendChatMessage.message = message;
+				PacketHelper::send(sendChatMessage, *this);
+			}
 		}
 		else
 		{

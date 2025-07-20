@@ -6,6 +6,7 @@
  *  The original code is copyright (c) 2022, open.mp team and contributors.
  */
 
+#include <stdarg.h>
 #include "Plugin.h"
 #include "../Manager/Manager.hpp"
 
